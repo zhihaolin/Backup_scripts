@@ -1,0 +1,43 @@
+# Rclone configuration (contains sensitive tokens)
+rclone.conf
+.rclone.conf
+
+# Log files (may contain sensitive file paths)
+_logs/
+*.log
+
+# Backup directories
+Archives-*/
+/Volumes/
+
+# Environment files
+.env
+.env.*
+*.env
+
+# macOS
+.DS_Store
+
+# Temporary & backup files
+*.tmp
+*.temp
+*.bak
+*.orig
+*_clean.sh
+*_backup.sh
+
+# Personal identifiers
+*alumni*
+*stanford*
+*zhihaolin*
+*@*.sh
+*.personal.sh
+
+# Configuration files that might contain personal info
+config.sh
+settings.sh
+personal_*
+
+# Test files that might contain real remote names
+test_*.sh
+local_*.sh
