@@ -24,7 +24,6 @@ Archives-*/
 *.bak
 *.orig
 *_clean.sh
-*_backup.sh
 
 # Personal identifiers
 *alumni*
