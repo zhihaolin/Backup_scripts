@@ -24,7 +24,6 @@ Archives-*/
 *.bak
 *.orig
 *_clean.sh
-*_backup.sh
 
 # Personal identifiers
 *alumni*
@@ -41,13 +40,3 @@ personal_*
 # Test files that might contain real remote names
 test_*.sh
 local_*.sh
-
-# --- Usage helper (informational only) ---
-# Copy the backup script to a home backups folder:
-#   mkdir -p ~/backups
-#   install -m 700 /Users/zhl/Documents/02_Area_Code/Backup_scripts/run_gdrives_backup.sh ~/backups/
-# Or (two-step):
-#   cp /Users/zhl/Documents/02_Area_Code/Backup_scripts/run_gdrives_backup.sh ~/backups/
-#   chmod 700 ~/backups/run_gdrives_backup.sh
-# Run from new location (test mode):
-#   MODE=test ~/backups/run_gdrives_backup.sh

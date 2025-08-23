@@ -146,31 +146,27 @@ echo "================================================="
 echo "📁 Backup dest: $dest"
 echo "🔧 Mode: $MODE"
 echo "💾 Available space: ${available_gb}GB"
+echo "🔗 Including files shared with you: YES"
 echo ""
 
 ### ---- rclone options ----
 # Export Google Docs/Sheets/Slides to *Office* (docs->docx, sheets->xlsx, slides->pptx; drawings->svg).
-# Other file types copy as-is. We also include "Shared with me".
+# Other file types copy as-is.
 rclone_main_common=(
   --fast-list --checkers $CHECKERS --transfers $TRANSFERS --tpslimit $TPSLIMIT --log-level INFO
-  --drive-shared-with-me
   --drive-export-formats docx,xlsx,pptx,svg
 )
 
-### ---- Test mode: tiny capped COPY; Prod: full SYNC with snapshotting of deletes/overwrites. ----
-if [[ "$MODE" == "test" ]]; then
-  limiter=( --max-transfer 200M --max-size 50M )
-  cmd=( copy )
-else
-  limiter=()
-  cmd=( sync )
-fi
+echo "🔄 Will backup: Both your files AND files shared with you"
+echo ""
 
 ### ---- Mirror "My Drive" for a given remote into dest_sub ----
 mirror_my_drive() {
   local remote="$1" dest_sub="$2"
   local target="$dest/$dest_sub"
   local log_file="$logdir/${dest_sub//\//-}.log"
+  local my_drive_errors=0
+  local shared_errors=0
   
   echo "== MY DRIVE: $remote -> $target =="
   echo "Log file: $log_file"
@@ -181,6 +177,8 @@ mirror_my_drive() {
     return 1
   fi
   
+  # First backup regular "My Drive" files
+  echo "🔄 Backing up your own files from My Drive..."
   local rclone_cmd=(
     rclone "${cmd[@]}" "$remote:/" "$target"
     "${rclone_main_common[@]}" "${limiter[@]}"
@@ -194,15 +192,56 @@ mirror_my_drive() {
   
   echo "Running: ${rclone_cmd[*]}"
   
-  if "${rclone_cmd[@]}"; then
-    echo "✓ Successfully completed backup for $remote"
+  if ! "${rclone_cmd[@]}"; then
+    my_drive_errors=1
+    echo "✗ ERROR: Backing up My Drive failed" >&2
+    echo "Continuing with shared files backup..." >&2
   else
-    local exit_code=$?
-    echo "✗ ERROR: Backup failed for $remote (exit code: $exit_code)" >&2
+    echo "✓ My Drive backup completed successfully"
+  fi
+  
+  # Always try to backup shared files, even if My Drive failed
+  echo "🔄 Backing up files shared with you to Shared_with_me subfolder..."
+  local shared_target="$target/Shared_with_me"
+  mkdir -p "$shared_target"
+  
+  local shared_cmd=(
+    rclone "${cmd[@]}" "$remote:/" "$shared_target"
+    "${rclone_main_common[@]}" "${limiter[@]}"
+    --drive-shared-with-me
+    --log-file "$log_file"
+    --stats-one-line --stats 30s
+  )
+  
+  echo "Running (shared files): ${shared_cmd[*]}"
+  
+  if ! "${shared_cmd[@]}"; then
+    shared_errors=1
+    echo "✗ ERROR: Backing up shared files failed" >&2
+  else
+    echo "✓ Shared files backup completed successfully"
+  fi
+  
+  # Return appropriate exit code
+  local total_errors=$((my_drive_errors + shared_errors))
+  if [[ $total_errors -gt 0 ]]; then
+    echo "✗ Backup for $remote completed with $total_errors error(s)" >&2
     echo "Check log: $log_file" >&2
-    return $exit_code
+    return $total_errors
+  else
+    echo "✓ Successfully completed backup for $remote (both own and shared files)"
+    return 0
   fi
 }
+
+### ---- Test mode: tiny capped COPY; Prod: full SYNC with snapshotting of deletes/overwrites. ----
+if [[ "$MODE" == "test" ]]; then
+  limiter=( --max-transfer 200M --max-size 50M )
+  cmd=( copy )
+else
+  limiter=()
+  cmd=( sync )
+fi
 
 ### ---- Run both Google Drives ----
 backup_errors=0
@@ -212,16 +251,16 @@ echo "=== STARTING GOOGLE DRIVE BACKUPS ==="
 echo ""
 echo "📂 Starting backup of $REMOTE_1..."
 if ! mirror_my_drive "$REMOTE_1" "$REMOTE_1"; then
-  backup_errors=$((backup_errors + 1))
+  backup_errors=$((backup_errors + $?))
   echo ""
-  echo "⚠️  First backup failed, continuing with second backup..."
+  echo "⚠️  First backup had errors, continuing with second backup..."
   echo ""
 fi
 
 echo ""
 echo "📂 Starting backup of $REMOTE_2..."
 if ! mirror_my_drive "$REMOTE_2" "$REMOTE_2"; then
-  backup_errors=$((backup_errors + 1))
+  backup_errors=$((backup_errors + $?))
 fi
 
 ### ---- Retention: prune old snapshots ----
