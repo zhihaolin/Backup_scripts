@@ -40,3 +40,7 @@ personal_*
 # Test files that might contain real remote names
 test_*.sh
 local_*.sh
+
+# LaunchAgent plist files (contain personal remote names)
+*.plist
+com.user.*
