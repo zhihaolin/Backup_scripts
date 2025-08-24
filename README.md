@@ -1,6 +1,6 @@
 # Google Drive Backup Script
 
-Automated backup script for multiple Google Drive accounts to external storage volumes.
+Automated backup script for multiple Google Drive accounts to external storage volumes, with optional macOS automation.
 
 ## ⚠️ Security Notice
 
@@ -81,6 +81,44 @@ REMOTE_1="work_drive" REMOTE_2="personal_drive" MODE=test ./run_gdrives_backup.s
 REMOTE_1="work_drive" REMOTE_2="personal_drive" ./run_gdrives_backup.sh
 ```
 
+## Automation Setup (Optional)
+
+For automated daily backups, you can set up a macOS LaunchAgent:
+
+### 1. Create Automator Application
+1. Open Automator and create a new Application
+2. Add "Run Shell Script" action
+3. Set the script to run your backup command
+4. Save as `RunGDrivesBackup.app` in `/Applications/`
+
+### 2. Install LaunchAgent
+```bash
+# Copy the example plist and customize it
+cp com.user.googledrive.backup.plist.example com.user.googledrive.backup.plist
+
+# Edit the plist file to match your setup
+# - Update remote names
+# - Verify paths are correct
+
+# Install the LaunchAgent
+cp com.user.googledrive.backup.plist ~/Library/LaunchAgents/
+
+# Load it (will run immediately and then daily at 23:30)
+launchctl load ~/Library/LaunchAgents/com.user.googledrive.backup.plist
+```
+
+### 3. Managing the LaunchAgent
+```bash
+# Check status
+launchctl list | grep googledrive
+
+# Unload (stop)
+launchctl unload ~/Library/LaunchAgents/com.user.googledrive.backup.plist
+
+# View logs
+tail -f ~/Library/Logs/com.user.googledrive.backup.stdout.log
+```
+
 ## Error Handling
 
 The script is designed to be resilient:
@@ -102,9 +140,10 @@ The script is designed to be resilient:
 
 - 🔒 Never commit rclone config files
 - 🔒 Use environment variables for sensitive configuration
+- 🔒 The LaunchAgent plist contains personal remote names - don't commit it
 - 🔒 Regularly review and rotate access tokens
 - 🔒 Review log files before sharing
-- 🔒 Use specific, non-personal remote names
+- 🔒 Use specific, non-personal remote names in public examples
 
 ## Troubleshooting
 
