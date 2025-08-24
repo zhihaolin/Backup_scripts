@@ -39,6 +39,36 @@ export REMOTE_1="work_drive"
 export REMOTE_2="personal_drive"
 ```
 
+## Features
+
+- ✅ Backs up multiple Google Drive accounts
+- ✅ Backs up both your own files AND files shared with you
+- ✅ Organizes shared files in dedicated "Shared_with_me" subfolders
+- ✅ Automatic external volume detection (Archives-A/Archives-B)
+- ✅ Disk space validation
+- ✅ Export Google Docs/Sheets/Slides to Office formats
+- ✅ Comprehensive logging and error reporting
+- ✅ Snapshot versioning with automatic cleanup
+- ✅ Test mode for safe initial runs
+- ✅ Continues backup even if one drive fails
+
+## Backup Structure
+
+The script creates this folder structure on your external drive:
+```
+/Volumes/Archives-A/
+├── work_drive/
+│   ├── (your personal files and folders)
+│   └── Shared_with_me/
+│       └── (files shared with you)
+├── personal_drive/
+│   ├── (your personal files and folders)
+│   └── Shared_with_me/
+│       └── (files shared with you)
+└── _logs/
+    └── (backup logs organized by timestamp)
+```
+
 ## Usage
 
 ### Test Mode (Recommended first)
@@ -51,15 +81,13 @@ REMOTE_1="work_drive" REMOTE_2="personal_drive" MODE=test ./run_gdrives_backup.s
 REMOTE_1="work_drive" REMOTE_2="personal_drive" ./run_gdrives_backup.sh
 ```
 
-## Features
+## Error Handling
 
-- ✅ Backs up multiple Google Drive accounts
-- ✅ Automatic external volume detection (Archives-A/Archives-B)
-- ✅ Disk space validation
-- ✅ Export Google Docs/Sheets/Slides to Office formats
-- ✅ Comprehensive logging and error reporting
-- ✅ Snapshot versioning with automatic cleanup
-- ✅ Test mode for safe initial runs
+The script is designed to be resilient:
+- If backing up your personal files fails, it will still attempt to backup shared files
+- If one Google Drive account fails, it will continue with the next one
+- All errors are logged and reported at the end
+- The script provides clear exit codes for automation
 
 ## Configuration
 
@@ -88,6 +116,6 @@ REMOTE_1="work_drive" REMOTE_2="personal_drive" ./run_gdrives_backup.sh
 ## Log Files
 
 Logs are saved to `<destination>/_logs/<timestamp>/`:
-- `main.log` - Combined output
-- `<remote1>.log` - First remote backup log
-- `<remote2>.log` - Second remote backup log
+- `main.log` - Combined output from entire backup session
+- `<remote1>.log` - First remote backup log (both personal and shared files)
+- `<remote2>.log` - Second remote backup log (both personal and shared files)
