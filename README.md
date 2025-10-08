@@ -51,6 +51,7 @@ export REMOTE_2="personal_drive"
 - ✅ Snapshot versioning with automatic cleanup
 - ✅ Test mode for safe initial runs
 - ✅ Continues backup even if one drive fails
+- ✅ Automated backup monitoring with macOS notifications
 
 ## Backup Structure
 
@@ -118,6 +119,47 @@ launchctl unload ~/Library/LaunchAgents/com.user.googledrive.backup.plist
 # View logs
 tail -f ~/Library/Logs/com.user.googledrive.backup.stdout.log
 ```
+
+## Backup Monitoring (Optional)
+
+The `monitor_backup.sh` script checks if backups are running successfully and sends macOS notifications.
+
+### Setup Monitoring
+
+```bash
+# Make the script executable
+chmod +x monitor_backup.sh
+
+# Test it manually
+./monitor_backup.sh check    # Check status and send notification
+./monitor_backup.sh summary  # Display backup summary report
+
+# Install automated monitoring (runs daily at 9 AM)
+cp com.user.googledrive.backup.monitor.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.user.googledrive.backup.monitor.plist
+```
+
+### Monitoring Features
+
+The monitoring script will send macOS notifications for:
+- ✅ **Success**: Backup completed successfully
+- ❌ **Failure**: Backup encountered errors
+- ⚠️ **Warning**: Backup hasn't run in 26+ hours
+- ⏳ **Running**: Backup is currently in progress
+
+### Monitoring Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `MAX_AGE_HOURS` | 26 | Alert if last backup is older than this |
+
+### Monitoring Logs
+
+Monitor logs are saved to:
+- `~/Library/Logs/backup_monitor.log` - Monitoring activity log
+- `~/Library/Logs/backup_last_status.txt` - Latest backup status
+- `~/Library/Logs/com.user.googledrive.backup.monitor.stdout.log` - LaunchAgent stdout
+- `~/Library/Logs/com.user.googledrive.backup.monitor.stderr.log` - LaunchAgent stderr
 
 ## Error Handling
 
