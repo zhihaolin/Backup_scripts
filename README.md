@@ -100,13 +100,18 @@ cp com.user.googledrive.backup.plist.example com.user.googledrive.backup.plist
 # Edit the plist file to match your setup
 # - Update remote names
 # - Verify paths are correct
+# - IMPORTANT: Set RunAtLoad to true for auto-start on boot
 
 # Install the LaunchAgent
 cp com.user.googledrive.backup.plist ~/Library/LaunchAgents/
 
-# Load it (will run immediately and then daily at 23:30)
+# Load it (will run immediately and then daily at 23:00)
 launchctl load ~/Library/LaunchAgents/com.user.googledrive.backup.plist
 ```
+
+**Important Configuration:**
+- Set `<key>RunAtLoad</key><true/>` in the plist to ensure the backup service automatically starts after system reboots
+- Without this setting, backups will stop running after a reboot until manually reloaded
 
 ### 3. Managing the LaunchAgent
 ```bash
@@ -135,6 +140,7 @@ chmod +x monitor_backup.sh
 ./monitor_backup.sh summary  # Display backup summary report
 
 # Install automated monitoring (runs daily at 9 AM)
+# NOTE: Ensure RunAtLoad is set to true in the plist for auto-start on boot
 cp com.user.googledrive.backup.monitor.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.user.googledrive.backup.monitor.plist
 ```
