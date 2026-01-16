@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.user.googledrive.backup</string>
+
+    <!-- Launch the Automator app and wait until it finishes -->
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/bin/open</string>
+      <string>-W</string>
+      <string>/Applications/RunGDrivesBackup.app</string>
+    </array>
+
+    <!-- Nightly at 23:00 local -->
+    <key>StartCalendarInterval</key>
+    <dict><key>Hour</key><integer>23</integer><key>Minute</key><integer>00</integer></dict>
+
+    <!-- Update paths for your user/home directory -->
+    <key>WorkingDirectory</key><string>/Users/YOUR_USER</string>
+    <key>StandardOutPath</key><string>/Users/YOUR_USER/Library/Logs/com.user.googledrive.backup.stdout.log</string>
+    <key>StandardErrorPath</key><string>/Users/YOUR_USER/Library/Logs/com.user.googledrive.backup.stderr.log</string>
+
+    <!-- Run once when loaded (smoke test) -->
+    <key>RunAtLoad</key><true/>
+  </dict>
+</plist>

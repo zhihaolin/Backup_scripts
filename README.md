@@ -39,6 +39,8 @@ export REMOTE_1="work_drive"
 export REMOTE_2="personal_drive"
 ```
 
+Note: The script refuses the default placeholders (`remote1`/`remote2`). Set real remote names or export `ALLOW_DEFAULT_REMOTES=1` for temporary testing. Remote names must match `[A-Za-z0-9_-]`.
+
 ## Features
 
 - ✅ Backs up multiple Google Drive accounts
@@ -94,16 +96,16 @@ For automated daily backups, you can set up a macOS LaunchAgent:
 
 ### 2. Install LaunchAgent
 ```bash
-# Copy the example plist and customize it
+# Copy the example plist and customize it (kept local and gitignored)
 cp com.user.googledrive.backup.plist.example com.user.googledrive.backup.plist
 
-# Edit the plist file to match your setup
-# - Update remote names
-# - Verify paths are correct
+# Edit the plist file to match your setup:
+# - Update the path to your Automator app
+# - Update user paths (WorkingDirectory/StandardOutPath/StandardErrorPath)
 # - IMPORTANT: Set RunAtLoad to true for auto-start on boot
 
-# Create symlink in LaunchAgents directory
-ln -sf $(pwd)/com.user.googledrive.backup.plist ~/Library/LaunchAgents/
+# Install into LaunchAgents (prefer a copy; symlinks can break if the repo is iCloud-managed)
+cp com.user.googledrive.backup.plist ~/Library/LaunchAgents/
 
 # Load it (will run immediately and then daily at 23:00)
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.googledrive.backup.plist
@@ -143,10 +145,18 @@ chmod +x monitor_backup.sh
 ./monitor_backup.sh summary  # Display backup summary report
 
 # Install automated monitoring (runs daily at 9 AM)
+# Copy the example plist and customize it (kept local and gitignored)
+cp com.user.googledrive.backup.monitor.plist.example com.user.googledrive.backup.monitor.plist
+
+# Edit the plist file to match your setup:
+# - Update the script path in ProgramArguments
+# - Update user paths (WorkingDirectory/StandardOutPath/StandardErrorPath)
 # NOTE: Ensure RunAtLoad is set to true in the plist for auto-start on boot
-ln -sf $(pwd)/com.user.googledrive.backup.monitor.plist ~/Library/LaunchAgents/
+cp com.user.googledrive.backup.monitor.plist ~/Library/LaunchAgents/
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.googledrive.backup.monitor.plist
 ```
+
+By default, the monitor looks for Automator logs in `~/Library/Logs/Backups/automator-*.log`. If you run backups another way, update `BACKUP_LOG_DIR` near the top of `monitor_backup.sh`.
 
 ### Monitoring Features
 
@@ -191,7 +201,7 @@ The script is designed to be resilient:
 
 - 🔒 Never commit rclone config files
 - 🔒 Use environment variables for sensitive configuration
-- 🔒 The LaunchAgent plist contains personal remote names - don't commit it
+- 🔒 LaunchAgent plist files contain personal paths - keep them out of git
 - 🔒 Regularly review and rotate access tokens
 - 🔒 Review log files before sharing
 - 🔒 Use specific, non-personal remote names in public examples
@@ -202,6 +212,23 @@ The script is designed to be resilient:
 2. **Permission errors**: Verify Google Drive API access
 3. **Network timeouts**: Check internet connection
 4. **Disk space errors**: Free up space on destination volume
+5. **LaunchAgent not running after reboot**: Ensure the plist in `~/Library/LaunchAgents/` is a real file (not a symlink), `RunAtLoad` is true, and reload it (see below)
+6. **"can't open input file" for `monitor_backup.sh`**: Verify the script path in the plist and ensure the repo is kept downloaded if it lives in iCloud-managed `~/Documents`
+
+### LaunchAgent Recovery
+```bash
+launchctl bootout gui/$(id -u)/com.user.googledrive.backup 2>/dev/null || true
+launchctl bootout gui/$(id -u)/com.user.googledrive.backup.monitor 2>/dev/null || true
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.googledrive.backup.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.googledrive.backup.monitor.plist
+launchctl list | grep -E "googledrive|backup"
+```
+
+Optional diagnostics if it still fails:
+```bash
+launchctl print gui/$(id -u)/com.user.googledrive.backup | head -40
+launchctl print gui/$(id -u)/com.user.googledrive.backup.monitor | head -40
+```
 
 ## Log Files
 

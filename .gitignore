@@ -41,6 +41,8 @@ personal_*
 test_*.sh
 local_*.sh
 
-# LaunchAgent plist files (contain personal remote names)
+# LaunchAgent plist files (contain personal paths)
 *.plist
 com.user.*
+!*.plist.example
+!com.user.*.plist.example

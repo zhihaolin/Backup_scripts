@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.user.googledrive.backup.monitor</string>
+
+    <!-- Run the monitoring script -->
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/zsh</string>
+      <string>/Users/YOUR_USER/path/to/Backup_scripts/monitor_backup.sh</string>
+      <string>check</string>
+    </array>
+
+    <!-- Check daily at 09:00 (9 AM) -->
+    <key>StartCalendarInterval</key>
+    <dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
+
+    <!-- Update paths for your user/home directory -->
+    <key>WorkingDirectory</key><string>/Users/YOUR_USER</string>
+    <key>StandardOutPath</key><string>/Users/YOUR_USER/Library/Logs/com.user.googledrive.backup.monitor.stdout.log</string>
+    <key>StandardErrorPath</key><string>/Users/YOUR_USER/Library/Logs/com.user.googledrive.backup.monitor.stderr.log</string>
+
+    <!-- Run once when loaded (optional) -->
+    <key>RunAtLoad</key><true/>
+  </dict>
+</plist>
