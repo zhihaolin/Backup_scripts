@@ -50,3 +50,38 @@ launchctl print gui/$(id -u)/com.user.googledrive.backup.monitor | head -40
 ### Hypothesis to Confirm
 - If `~/Documents` is iCloud-managed, `Backup_scripts` may be offloaded at login.
 - Ensure `Backup_scripts` is set to "Keep Downloaded" in Finder.
+
+---
+
+Date: 2026-01-16 16:57:57 +0800
+
+### Context
+- Updated README to align with the debug notes and recovery steps.
+- Added example LaunchAgent plists and adjusted ignore rules so examples are tracked.
+
+### Actions Taken
+- Added `com.user.googledrive.backup.plist.example` and `com.user.googledrive.backup.monitor.plist.example`.
+- Updated `.gitignore` to keep real `.plist` files ignored while allowing `*.plist.example`.
+- Committed and pushed: `docs: add LaunchAgent plist examples`.
+
+### Current State
+- Repo clean and up to date on `origin/main`.
+- Local `.plist` files remain gitignored and must be installed as real files under `~/Library/LaunchAgents/`.
+
+### Next Steps (next session)
+1. Create or update local plist files from the `.plist.example` templates and fix all paths.
+2. Copy local plists into `~/Library/LaunchAgents/` (avoid symlinks if the repo is iCloud-managed).
+3. Ensure `monitor_backup.sh` is executable and the script path in the monitor plist is correct.
+4. Reload with `launchctl` and verify job status/logs:
+```bash
+launchctl bootout gui/$(id -u)/com.user.googledrive.backup 2>/dev/null || true
+launchctl bootout gui/$(id -u)/com.user.googledrive.backup.monitor 2>/dev/null || true
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.googledrive.backup.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.googledrive.backup.monitor.plist
+launchctl list | grep -E "googledrive|backup"
+```
+5. If it still fails, run:
+```bash
+launchctl print gui/$(id -u)/com.user.googledrive.backup | head -40
+launchctl print gui/$(id -u)/com.user.googledrive.backup.monitor | head -40
+```
